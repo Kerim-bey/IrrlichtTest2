@@ -74,7 +74,7 @@ extern int main(int argc, char** argv)
             anim->drop();
         }
 
-        node5->setFrameLoop(0, 13);
+        node5->setFrameLoop(1, 13);
         node5->setAnimationSpeed(15);
 
         node5->setScale(core::vector3df(10, 10, 10));
