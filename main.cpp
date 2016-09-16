@@ -49,6 +49,38 @@ extern int main(int argc, char** argv)
         node2->setScale(core::vector3df(1.8, 1.8, 1.8));
     }
 
+    scene::ISceneNode *node3 = smgr->addSphereSceneNode();
+    if (node3) {
+        node3->setPosition(core::vector3df(0, 0, 30));
+        node3->setMaterialTexture(0, driver->getTexture("media/textures/sphere.png"));
+    }
+
+    scene::ISceneNode *node4 = smgr->addCubeSceneNode(10.f, node3);
+    if (node4) {
+        node4->setMaterialTexture(0, driver->getTexture("media/textures/cube.png"));
+        scene::ISceneNodeAnimator *anim = smgr->createFlyCircleAnimator(core::vector3df(0, 0, 0), 20);
+        if (anim) {
+            node4->addAnimator(anim);
+            anim->drop();
+        }
+    }
+
+    scene::IAnimatedMeshSceneNode *node5 = smgr->addAnimatedMeshSceneNode(smgr->getMesh("media/models/ninja.b3d"));
+    if (node5) {
+        scene::ISceneNodeAnimator *anim = smgr->createFlyStraightAnimator(core::vector3df(-100, -45, 60), core::vector3df(100, -45, 60),
+            3500, true);
+        if (anim) {
+            node5->addAnimator(anim);
+            anim->drop();
+        }
+
+        node5->setFrameLoop(0, 13);
+        node5->setAnimationSpeed(15);
+
+        node5->setScale(core::vector3df(10, 10, 10));
+        node5->setRotation(core::vector3df(0, 90, 0));
+    }
+
     // Add camera
     scene::ICameraSceneNode *camera = smgr->addCameraSceneNodeFPS();
     camera->setPosition(core::vector3df(0, 0, 30));
@@ -59,12 +91,22 @@ extern int main(int argc, char** argv)
     scene::ILightSceneNode *light = smgr->addLightSceneNode(0, core::vector3df(50.0f,10.0f,0.0f), video::SColorf(1.0f,1.0f,1.0f,1.0f), 500.0f );
 
     int lastFPS = -1;
+    u32 then = device->getTimer()->getTime();
+    const f32 MOVEMENT_SPEED = 30.f;
     while(device->run()) {
         if (device->isWindowActive()) {
-            if(rec.IsKeyDown(KEY_KEY_W)) camera->setPosition(camera->getPosition() + core::vector3df(0.1,0,0));
-            if(rec.IsKeyDown(KEY_KEY_S)) camera->setPosition(camera->getPosition() + core::vector3df(-0.1,0,0));
-            if(rec.IsKeyDown(KEY_KEY_A)) camera->setPosition(camera->getPosition() + core::vector3df(0,0,0.1));
-            if(rec.IsKeyDown(KEY_KEY_D)) camera->setPosition(camera->getPosition() + core::vector3df(0,0,-0.1));
+            const u32 now = device->getTimer()->getTime();
+            const f32 frameDeltaTime = (f32)(now - then) / 1000.f; // time in seconds
+            then = now;
+
+            core::vector3df node3Pos = node3->getPosition();
+            if(rec.IsKeyDown(KEY_KEY_W)) node3Pos.X += MOVEMENT_SPEED * frameDeltaTime;
+            if(rec.IsKeyDown(KEY_KEY_S)) node3Pos.X -= MOVEMENT_SPEED * frameDeltaTime;
+            if(rec.IsKeyDown(KEY_KEY_A)) node3Pos.Z += MOVEMENT_SPEED * frameDeltaTime;
+            if(rec.IsKeyDown(KEY_KEY_D)) node3Pos.Z -= MOVEMENT_SPEED * frameDeltaTime;
+            if(rec.IsKeyDown(KEY_SPACE)) node3Pos.Y += MOVEMENT_SPEED * frameDeltaTime;
+            if(rec.IsKeyDown(KEY_LSHIFT)) node3Pos.Y -= MOVEMENT_SPEED * frameDeltaTime;
+            node3->setPosition(node3Pos);
 
             int fps = driver->getFPS();
             if (lastFPS != fps)
@@ -74,7 +116,6 @@ extern int main(int argc, char** argv)
                 str += "] FPS:";
                 str += fps;
 
-                device->setWindowCaption(str.c_str());
                 lastFPS = fps;
                 staticText->setText(str.c_str());
             }
